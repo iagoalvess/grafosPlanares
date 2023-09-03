@@ -1,4 +1,13 @@
 #include "math.h"
+#include "iostream"
+#include "vector"
+
+class Vertices {
+public:
+  double x, y;
+  int grau;
+  std::vector<int> vizinhos;
+};
 
 class Ponto {
 public:
@@ -28,4 +37,8 @@ int TipoCurva(Ponto a, Ponto b, Ponto c) {
   if (v < 0) return -1; // esquerda.
   if (v > 0) return +1; // direita.
   return 0; // em frente.
+}
+
+int main() {
+
 }
