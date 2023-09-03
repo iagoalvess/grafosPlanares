@@ -2,12 +2,38 @@
 #include "iostream"
 #include "vector"
 
-class Vertices {
+using namespace std;
+
+class Vertice {
 public:
   double x, y;
   int grau;
-  std::vector<int> vizinhos;
+  vector<int> vizinhos;
 };
+
+void lerEntrada(vector<Vertice>& grafo) {
+  int n, m;
+  cin >> n >> m;
+  grafo.resize(n);
+
+  for (int i = 0; i < n; i++) {
+    cin >> grafo[i].x >> grafo[i].y >> grafo[i].grau;
+    grafo[i].vizinhos.resize(grafo[i].grau);
+
+    for (int j = 0; j < grafo[i].grau; j++) {
+      cin >> grafo[i].vizinhos[j];
+    }
+  }
+
+  for (int i = 0; i < n; ++i) {
+    cout << "Vértice " << i + 1 << ": (" << grafo[i].x << ", " << grafo[i].y << "), Grau: " << grafo[i].grau << ", Vizinhos: ";
+
+    for (int j = 0; j < grafo[i].grau; ++j) {
+      cout << grafo[i].vizinhos[j] << " ";
+    }
+    cout << endl;
+  }
+}
 
 class Ponto {
 public:
@@ -40,5 +66,6 @@ int TipoCurva(Ponto a, Ponto b, Ponto c) {
 }
 
 int main() {
-
+  vector<Vertice> grafo;
+  lerEntrada(grafo);
 }
