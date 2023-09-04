@@ -10,7 +10,6 @@ public:
   double x, y;
 };
 
-
 class Vertice {
 public:
   Ponto p;
@@ -19,31 +18,26 @@ public:
   double inclinacao;
 };
 
-void lerEntrada(vector<Vertice>& grafo) {
-  int n, m;
-  cin >> n >> m;
-  grafo.resize(n);
+class Grafo {
+public:
+  int num_vertices;
+  int num_arestas;
 
-  for (int i = 0; i < n; i++) {
-    cin >> grafo[i].p.x >> grafo[i].p.y >> grafo[i].grau;
-    grafo[i].vizinhos.resize(grafo[i].grau);
+  vector<Vertice> vertices;
 
-    for (int j = 0; j < grafo[i].grau; j++) {
-      cin >> grafo[i].vizinhos[j];
-    }
+  Grafo() {
+    num_vertices = 0;
+    num_arestas = 0;
   }
 
-  for (int i = 0; i < n; ++i) {
-    cout << "Vértice " << i + 1 << ": (" << grafo[i].p.x << ", " << grafo[i].p.y << "), Grau: " << grafo[i].grau << ", Vizinhos: ";
-
-    for (int j = 0; j < grafo[i].grau; ++j) {
-      cout << grafo[i].vizinhos[j] << " ";
-    }
-    cout << endl;
+  Grafo(int v, int a) {
+    num_vertices = v;
+    num_arestas = a;
+    vertices.resize(v);
   }
-}
+};
 
-// Dist^ancia euclidiana de a para b
+// Distancia euclidiana de a para b
 double Distancia(Ponto a, Ponto b) {
   double x = (a.x - b.x), y = (a.y - b.y);
   return sqrt(x*x + y*y);
@@ -68,33 +62,31 @@ int TipoCurva(Ponto a, Ponto b, Ponto c) {
   return 0; // em frente.
 }
 
-// Função de comparação para ordenar os vértices com base na inclinação relativa.
-bool CompararInclinacaoRelativa(const Vertice& a, const Vertice& b) {
-    return a.inclinacao < b.inclinacao;
+void lerEntrada(Grafo& grafo) {
+  int n, m;
+  cin >> n >> m;
+
+  grafo = Grafo(n , m);
+
+  for (int i = 0; i < grafo.num_vertices; i++) {
+    cin >> grafo.vertices[i].p.x >> grafo.vertices[i].p.y >> grafo.vertices[i].grau;
+
+    grafo.vertices[i].vizinhos.resize(grafo.vertices[i].grau);
+
+    for (int j = 0; j < grafo.vertices[i].grau; j++) {
+      cin >> grafo.vertices[i].vizinhos[j];
+    }
+  }
 }
 
 void OrdenaGrafo(vector<Vertice>& grafo) {
-  // Calcular as inclinações relativas para cada vértice.
-  for (Vertice &v : grafo) {
-    for (int vizinho : v.vizinhos) {
-      v.inclinacao = InclinacaoRelativa(v.p, grafo[vizinho].p);
-    }
-  }
 
-  // Ordenar os vértices com base na inclinação relativa.
-  std::sort(grafo.begin(), grafo.end(), CompararInclinacaoRelativa);
-
-  // Exibir os vértices ordenados.
-  std::cout << "Vértices ordenados por inclinação relativa:" << std::endl;
-  for (const Vertice &v : grafo) {
-    std::cout << "(" << v.p.x << ", " << v.p.y << "), Grau: " << v.grau << std::endl;
-  }
 }
 
 int main() {
-  vector<Vertice> grafo;
+  Grafo grafo;
   lerEntrada(grafo);
-  OrdenaGrafo(grafo);
+  //OrdenaGrafo(grafo);
 
   return 0;
 }
