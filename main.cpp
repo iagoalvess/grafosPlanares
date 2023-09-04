@@ -8,6 +8,9 @@ using namespace std;
 class Ponto {
 public:
   double x, y;
+
+  Ponto() : x(0.0), y(0.0) {}
+  Ponto(double _x, double _y) : x(_x), y(_y) {}
 };
 
 class Vertice {
@@ -16,6 +19,17 @@ public:
   int grau;
   vector<int> vizinhos;
   double inclinacao;
+
+  Vertice() : grau(0), inclinacao(0.0) {}
+  Vertice(double x, double y, int _grau) : p(x, y), grau(_grau) {}
+};
+
+class Aresta {
+public:
+  int origem, destino;
+  double comprimento;
+
+  Aresta(int o, int d, double c) : origem(o), destino(d), comprimento(c) {}
 };
 
 class Grafo {
@@ -24,17 +38,10 @@ public:
   int num_arestas;
 
   vector<Vertice> vertices;
+  vector<Aresta> arestas;
 
-  Grafo() {
-    num_vertices = 0;
-    num_arestas = 0;
-  }
-
-  Grafo(int v, int a) {
-    num_vertices = v;
-    num_arestas = a;
-    vertices.resize(v);
-  }
+  Grafo() : num_vertices(0), num_arestas(0) {}
+  Grafo(int v, int a) : num_vertices(v), num_arestas(a) {}
 };
 
 // Distancia euclidiana de a para b
@@ -69,12 +76,16 @@ void lerEntrada(Grafo& grafo) {
   grafo = Grafo(n , m);
 
   for (int i = 0; i < grafo.num_vertices; i++) {
-    cin >> grafo.vertices[i].p.x >> grafo.vertices[i].p.y >> grafo.vertices[i].grau;
+    double x, y;
+    int grau;
+    int vizinho;
 
-    grafo.vertices[i].vizinhos.resize(grafo.vertices[i].grau);
+    cin >> x >> y >> grau;
+    grafo.vertices.push_back(Vertice(x, y, grau));
 
-    for (int j = 0; j < grafo.vertices[i].grau; j++) {
-      cin >> grafo.vertices[i].vizinhos[j];
+    for (int j = 0; j < grau; j++) {
+      cin >> vizinho;
+      grafo.vertices[i].vizinhos.push_back(vizinho);
     }
   }
 }
@@ -83,10 +94,17 @@ void OrdenaGrafo(vector<Vertice>& grafo) {
 
 }
 
+void imprimirArestas(const Grafo& grafo) {
+  //for (const Aresta& aresta : grafo.arestas) {
+    //cout << "Origem: " << aresta.origem << ", Destino: " << aresta.destino << ", Comprimento: " << aresta.comprimento << endl;
+  //}
+}
+
 int main() {
   Grafo grafo;
   lerEntrada(grafo);
   //OrdenaGrafo(grafo);
+  //imprimirArestas(grafo);
 
   return 0;
 }
