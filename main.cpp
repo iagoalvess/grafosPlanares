@@ -131,20 +131,26 @@ Grafo lerEntrada() {
 
 
 
+void imprimirSaida(const vector<vector<size_t>>& faces) {
+  cout << faces.size() << endl;
+
+  for (size_t i = 0; i < faces.size(); i++) {
+    cout << faces[i].size() << " ";
+    for (size_t j = 0; j < faces[i].size(); j++) {
+      cout << faces[i][j] + 1 << " ";
+    }
+    cout << endl;
+  }
+}
+
+
+
 int main() {
   Grafo g = lerEntrada();
 
   vector<vector<size_t>> faces = encontrarFaces(g.vertices, g.matriz_adjacencia);
 
-  for (size_t i = 0; i < faces.size(); i++)
-  {
-    cout << "Face " << i + 1 << ": ";
-    for (size_t j = 0; j < faces[i].size(); j++)
-    {
-      cout << faces[i][j] + 1 << " ";
-    }
-    cout << endl;
-  }
+  imprimirSaida(faces);
 
   return 0;
 }
