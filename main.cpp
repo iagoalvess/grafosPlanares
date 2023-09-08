@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <cassert>
 
 using namespace std;
 
@@ -35,7 +36,9 @@ int TipoCurva(const Ponto &p, const Ponto &q, const Ponto &r) {
   return 0;    // EM FRENTE
 }
 
-bool compareVertices(const Ponto& ponto1, const Ponto& ponto2, const Ponto& referencia) {
+
+
+bool compararVertices(const Ponto& ponto1, const Ponto& ponto2, const Ponto& referencia) {
   double x1 = ponto1.x - referencia.x;
   double y1 = ponto1.y - referencia.y;
 
@@ -50,35 +53,7 @@ bool compareVertices(const Ponto& ponto1, const Ponto& ponto2, const Ponto& refe
   return x1 < x2 || (x1 == x2 && y1 < x2);
 }
 
-void lerEntrada(Grafo& grafo) {
-  int n, m;
-  cin >> n >> m;
 
-  grafo = Grafo(n , m);
-
-  for (int i = 0; i < grafo.num_vertices; i++) {
-    double x, y;
-    int grau;
-    int vizinho;
-
-    cin >> x >> y >> grau;
-    grafo.vertices.push_back(Vertice(x, y, grau));
-
-    for (int j = 0; j < grau; j++) {
-      cin >> vizinho;
-      grafo.vertices[i].vizinhos.push_back(vizinho);
-    }
-  }
-
-  for (int i = 0; i < n; ++i) {
-    cout << "Vértice " << i + 1 << ": (" << grafo.vertices[i].p.x << ", " << grafo.vertices[i].p.y << "), Grau: " << grafo.vertices[i].grau << ", Vizinhos: ";
-
-    for (int j = 0; j < grafo.vertices[i].grau; ++j) {
-      cout << grafo.vertices[i].vizinhos[j] << " ";
-    }
-    cout << endl;
-  }
-}
 
 void encontrarFaces(Grafo& grafo) {
 
@@ -102,4 +77,32 @@ int main() {
   encontrarFaces(grafo);
 
   return 0;
+}
+
+Grafo lerEntrada() {
+  int N, M;
+  cin >> N >> M;
+
+  vector<Ponto> vertices(N);
+  vector<vector<size_t>> matriz_adjacencia(N);
+
+  for (int i = 0; i < N; i++) {
+    double x, y;
+    int d;
+    cin >> x >> y >> d;
+
+    assert(d > 0 && d <= N);
+
+    vertices[i] = Ponto(x, y);
+    for (int j = 0; j < d; j++)
+    {
+      int v;
+      cin >> v;
+      v--;
+      assert(v >= 0 && v < N && v != i);
+      matriz_adjacencia[i].push_back(v);
+    }
+  }
+
+  return Grafo(vertices, matriz_adjacencia);
 }
