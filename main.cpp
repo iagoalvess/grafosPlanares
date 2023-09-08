@@ -2,6 +2,7 @@
 #include <vector>
 #include <algorithm>
 #include <cassert>
+#include <math.h>
 
 using namespace std;
 
@@ -25,33 +26,27 @@ public:
 
 
 
-int TipoCurva(const Ponto &p, const Ponto &q, const Ponto &r) {
-  int val = (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y);
-  if (val < 0) {
-    return -1;
-  }
-  if (val > 0) {
-    return +1;
-  }
-  return 0;
+double inclinacaoRelativa(Ponto p, Ponto q) {
+  return atan2(q.y - p.y, q.x - p.x);
 }
 
 
 
 bool compararVertices(const Ponto& ponto1, const Ponto& ponto2, const Ponto& referencia) {
-  double x1 = ponto1.x - referencia.x;
-  double y1 = ponto1.y - referencia.y;
+  double angulo1 = inclinacaoRelativa(ponto1, referencia);
+  double angulo2 = inclinacaoRelativa(ponto2, referencia);
 
-  double x2 = ponto2.x - referencia.x;
-  double y2 = ponto2.y - referencia.y;
-
-  int valor_orientacao = TipoCurva(referencia, ponto1, ponto2);
-  if (valor_orientacao != 0) {
-    return valor_orientacao > 0;
+  if (angulo1 != angulo2) {
+    return angulo1 < angulo2;
   }
 
-  return x1 < x2 || (x1 == x2 && y1 < y2);
+  double dist1 = (ponto1.x - referencia.x) * (ponto1.x - referencia.x) + (ponto1.y - referencia.y) * (ponto1.y - referencia.y);
+  double dist2 = (ponto2.x - referencia.x) * (ponto2.x - referencia.x) + (ponto2.y - referencia.y) * (ponto2.y - referencia.y);
+
+  return dist1 < dist2;
 }
+
+
 
 vector<vector<size_t>> encontrarFaces(vector<Ponto> vertices, vector<vector<size_t>> matriz_adjacencia) {
   vector<vector<bool>> arestas_visitadas(vertices.size());
@@ -83,7 +78,7 @@ vector<vector<size_t>> encontrarFaces(vector<Ponto> vertices, vector<vector<size
           return compararVertices(vertices[l], vertices[r], vertices[a]); 
         }) - matriz_adjacencia[a].begin() + 1;
 
-        if (b == matriz_adjacencia[a].size()) {
+        if (b >= matriz_adjacencia[a].size()) {
           b = 0;
         }
 
