@@ -24,29 +24,30 @@ public:
 
 
 
-// Distancia euclidiana de a para b
-double Distancia(Ponto a, Ponto b) {
-  double x = (a.x - b.x), y = (a.y - b.y);
-  return sqrt(x*x + y*y);
+int TipoCurva(const Ponto &p, const Ponto &q, const Ponto &r) {
+  int val = (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y);
+  if (val < 0) {
+    return -1; // ESQUERDA
+  }
+  if (val > 0) {
+    return +1; // DIREITA
+  }
+  return 0;    // EM FRENTE
 }
 
-// Coeficiente da reta que passa na origem e p
-double Inclinacao(Ponto p) {
-  return atan2(p.y, p.x);
-}
+bool compareVertices(const Ponto& ponto1, const Ponto& ponto2, const Ponto& referencia) {
+  double x1 = ponto1.x - referencia.x;
+  double y1 = ponto1.y - referencia.y;
 
-// Coeficiente da reta orientada de p para q.
-double InclinacaoRelativa(Ponto p, Ponto q) {
-  return atan2(q.y - p.y, q.x - p.x);
-}
+  double x2 = ponto2.x - referencia.x;
+  double x2 = ponto2.y - referencia.y;
 
-// Determina se ao caminhar de a para b e depois de b para c estamos 
-// fazendo uma curva a esquerda, a direita, ou seguindo em frente.
-int TipoCurva(Ponto a, Ponto b, Ponto c) {
-  double v = a.x*(b.y-c.y)+b.x*(c.y-a.y)+c.x*(a.y-b.y);
-  if (v < 0) return -1; // esquerda.
-  if (v > 0) return +1; // direita.
-  return 0; // em frente.
+  int valor_orientacao = TipoCurva(referencia, ponto1, ponto2);
+  if (valor_orientacao != 0) {
+    return valor_orientacao > 0;
+  }
+
+  return x1 < x2 || (x1 == x2 && y1 < x2);
 }
 
 void lerEntrada(Grafo& grafo) {
