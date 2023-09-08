@@ -28,12 +28,12 @@ public:
 int TipoCurva(const Ponto &p, const Ponto &q, const Ponto &r) {
   int val = (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y);
   if (val < 0) {
-    return -1; // ESQUERDA
+    return -1;
   }
   if (val > 0) {
-    return +1; // DIREITA
+    return +1;
   }
-  return 0;    // EM FRENTE
+  return 0;
 }
 
 
@@ -43,41 +43,64 @@ bool compararVertices(const Ponto& ponto1, const Ponto& ponto2, const Ponto& ref
   double y1 = ponto1.y - referencia.y;
 
   double x2 = ponto2.x - referencia.x;
-  double x2 = ponto2.y - referencia.y;
+  double y2 = ponto2.y - referencia.y;
 
   int valor_orientacao = TipoCurva(referencia, ponto1, ponto2);
   if (valor_orientacao != 0) {
     return valor_orientacao > 0;
   }
 
-  return x1 < x2 || (x1 == x2 && y1 < x2);
+  return x1 < x2 || (x1 == x2 && y1 < y2);
 }
 
+vector<vector<size_t>> encontrarFaces(vector<Ponto> vertices, vector<vector<size_t>> matriz_adjacencia) {
+  vector<vector<bool>> arestas_visitadas(vertices.size());
 
-
-void encontrarFaces(Grafo& grafo) {
-
-// DFS DE ARESTAS
-
-
-
-}
-  
-/*void imprimirArestas(const Grafo& grafo) {
-  for (const Aresta& aresta : grafo.arestas) {
-    cout << "Origem: " << aresta.origem << ", Destino: " << aresta.destino << ", Comprimento: " << aresta.comprimento << endl;
+  for (size_t i = 0; i < vertices.size(); i++) {
+    arestas_visitadas[i].resize(matriz_adjacencia[i].size(), false);
+    sort(matriz_adjacencia[i].begin(), matriz_adjacencia[i].end(), [&](size_t l, size_t r) { 
+      return compararVertices(vertices[l], vertices[r], vertices[i]); 
+    });
   }
-}*/
 
-int main() {
-  Grafo grafo;
+  vector<vector<size_t>> faces;
+  for (size_t i = 0; i < vertices.size(); i++) {
+    for (size_t j = 0; j < matriz_adjacencia[i].size(); j++) {
+      if (arestas_visitadas[i][j] == true) {
+        continue;
+      }
 
-  lerEntrada(grafo);
-  
-  encontrarFaces(grafo);
+      vector<size_t> face;
+      size_t aux_1 = i;
+      size_t aux_2 = j;
 
-  return 0;
+      while (arestas_visitadas[aux_1][aux_2] == false) {
+        arestas_visitadas[aux_1][aux_2] = true;
+        face.push_back(aux_1);
+
+        size_t a = matriz_adjacencia[aux_1][aux_2];
+        size_t b = std::lower_bound(matriz_adjacencia[a].begin(), matriz_adjacencia[a].end(), aux_1, [&](size_t l, size_t r) { 
+          return compararVertices(vertices[l], vertices[r], vertices[a]); 
+        }) - matriz_adjacencia[a].begin() + 1;
+
+        if (b == matriz_adjacencia[a].size()) {
+          b = 0;
+        }
+
+        aux_1 = a;
+        aux_2 = b;
+      }
+      std::reverse(face.begin(), face.end());
+
+      face.push_back(face[0]);
+      faces.emplace_back(face);
+    }
+  }
+
+  return faces;
 }
+
+
 
 Grafo lerEntrada() {
   int N, M;
@@ -94,8 +117,7 @@ Grafo lerEntrada() {
     assert(d > 0 && d <= N);
 
     vertices[i] = Ponto(x, y);
-    for (int j = 0; j < d; j++)
-    {
+    for (int j = 0; j < d; j++) {
       int v;
       cin >> v;
       v--;
@@ -105,4 +127,24 @@ Grafo lerEntrada() {
   }
 
   return Grafo(vertices, matriz_adjacencia);
+}
+
+
+
+int main() {
+  Grafo g = lerEntrada();
+
+  vector<vector<size_t>> faces = encontrarFaces(g.vertices, g.matriz_adjacencia);
+
+  for (size_t i = 0; i < faces.size(); i++)
+  {
+    cout << "Face " << i + 1 << ": ";
+    for (size_t j = 0; j < faces[i].size(); j++)
+    {
+      cout << faces[i][j] + 1 << " ";
+    }
+    cout << endl;
+  }
+
+  return 0;
 }
