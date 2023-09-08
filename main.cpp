@@ -1,4 +1,3 @@
-#include <math.h>
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -13,36 +12,17 @@ public:
   Ponto(double _x, double _y) : x(_x), y(_y) {}
 };
 
-class Vertice {
-public:
-  Ponto p;
-  int grau;
-  vector<int> vizinhos;
-  double inclinacao;
 
-  Vertice() : grau(0), inclinacao(0.0) {}
-  Vertice(double x, double y, int _grau) : p(x, y), grau(_grau) {}
-};
-
-class Aresta {
-public:
-  int origem, destino;
-  double comprimento;
-
-  Aresta(int o, int d, double c) : origem(o), destino(d), comprimento(c) {}
-};
 
 class Grafo {
 public:
-  int num_vertices;
-  int num_arestas;
+  vector<Ponto> vertices;
+  vector<vector<size_t>> matriz_adjacencia;
 
-  vector<Vertice> vertices;
-  vector<Aresta> arestas;
-
-  Grafo() : num_vertices(0), num_arestas(0) {}
-  Grafo(int v, int a) : num_vertices(v), num_arestas(a) {}
+  Grafo(vector<Ponto> _vertices, vector<vector<size_t>> _matriz_adjacencia) : vertices(_vertices), matriz_adjacencia(_matriz_adjacencia) {}
 };
+
+
 
 // Distancia euclidiana de a para b
 double Distancia(Ponto a, Ponto b) {
@@ -88,23 +68,37 @@ void lerEntrada(Grafo& grafo) {
       grafo.vertices[i].vizinhos.push_back(vizinho);
     }
   }
+
+  for (int i = 0; i < n; ++i) {
+    cout << "Vértice " << i + 1 << ": (" << grafo.vertices[i].p.x << ", " << grafo.vertices[i].p.y << "), Grau: " << grafo.vertices[i].grau << ", Vizinhos: ";
+
+    for (int j = 0; j < grafo.vertices[i].grau; ++j) {
+      cout << grafo.vertices[i].vizinhos[j] << " ";
+    }
+    cout << endl;
+  }
 }
 
-void OrdenaGrafo(vector<Vertice>& grafo) {
+void encontrarFaces(Grafo& grafo) {
+
+// DFS DE ARESTAS
+
+
 
 }
-
-void imprimirArestas(const Grafo& grafo) {
-  //for (const Aresta& aresta : grafo.arestas) {
-    //cout << "Origem: " << aresta.origem << ", Destino: " << aresta.destino << ", Comprimento: " << aresta.comprimento << endl;
-  //}
-}
+  
+/*void imprimirArestas(const Grafo& grafo) {
+  for (const Aresta& aresta : grafo.arestas) {
+    cout << "Origem: " << aresta.origem << ", Destino: " << aresta.destino << ", Comprimento: " << aresta.comprimento << endl;
+  }
+}*/
 
 int main() {
   Grafo grafo;
+
   lerEntrada(grafo);
-  //OrdenaGrafo(grafo);
-  //imprimirArestas(grafo);
+  
+  encontrarFaces(grafo);
 
   return 0;
 }
