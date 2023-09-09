@@ -2,7 +2,7 @@
 #include <vector>
 #include <algorithm>
 #include <cassert>
-#include <math.h>
+#include <cmath>
 
 using namespace std;
 
@@ -19,19 +19,21 @@ public:
 class Grafo {
 public:
   vector<Ponto> vertices;
-  vector<vector<size_t>> matriz_adjacencia;
+  vector<vector<int>> matriz_adjacencia;
 
-  Grafo(vector<Ponto> _vertices, vector<vector<size_t>> _matriz_adjacencia) : vertices(_vertices), matriz_adjacencia(_matriz_adjacencia) {}
+  Grafo(vector<Ponto> _vertices, vector<vector<int>> _matriz_adjacencia) : vertices(_vertices), matriz_adjacencia(_matriz_adjacencia) {}
 };
 
 
 
-double inclinacaoRelativa(Ponto p, Ponto q) {
+// Calcula a inclinação relativa entre dois pontos p e q
+double inclinacaoRelativa(const Ponto& p, const Ponto& q) {
   return atan2(q.y - p.y, q.x - p.x);
 }
 
 
 
+// Compara dois vértices (ponto1 e ponto2) em relação a um ponto de referência
 bool compararVertices(const Ponto& ponto1, const Ponto& ponto2, const Ponto& referencia) {
   double angulo1 = inclinacaoRelativa(ponto1, referencia);
   double angulo2 = inclinacaoRelativa(ponto2, referencia);
@@ -48,33 +50,34 @@ bool compararVertices(const Ponto& ponto1, const Ponto& ponto2, const Ponto& ref
 
 
 
-vector<vector<size_t>> encontrarFaces(vector<Ponto> vertices, vector<vector<size_t>> matriz_adjacencia) {
+// Função que encontra as faces do grafo usando busca em profundidade
+vector<vector<int>> DFSparaEncontrarFaces(vector<Ponto> vertices, vector<vector<int>> matriz_adjacencia) {
   vector<vector<bool>> arestas_visitadas(vertices.size());
 
-  for (size_t i = 0; i < vertices.size(); i++) {
+  for (int i = 0; i < vertices.size(); i++) {
     arestas_visitadas[i].resize(matriz_adjacencia[i].size(), false);
-    sort(matriz_adjacencia[i].begin(), matriz_adjacencia[i].end(), [&](size_t l, size_t r) { 
+    sort(matriz_adjacencia[i].begin(), matriz_adjacencia[i].end(), [&](int l, int r) { 
       return compararVertices(vertices[l], vertices[r], vertices[i]); 
     });
   }
 
-  vector<vector<size_t>> faces;
-  for (size_t i = 0; i < vertices.size(); i++) {
-    for (size_t j = 0; j < matriz_adjacencia[i].size(); j++) {
+  vector<vector<int>> faces;
+  for (int i = 0; i < vertices.size(); i++) {
+    for (int j = 0; j < matriz_adjacencia[i].size(); j++) {
       if (arestas_visitadas[i][j] == true) {
         continue;
       }
 
-      vector<size_t> face;
-      size_t aux_1 = i;
-      size_t aux_2 = j;
+      vector<int> face;
+      int aux_1 = i;
+      int aux_2 = j;
 
       while (arestas_visitadas[aux_1][aux_2] == false) {
         arestas_visitadas[aux_1][aux_2] = true;
         face.push_back(aux_1);
 
-        size_t a = matriz_adjacencia[aux_1][aux_2];
-        size_t b = std::lower_bound(matriz_adjacencia[a].begin(), matriz_adjacencia[a].end(), aux_1, [&](size_t l, size_t r) { 
+        int a = matriz_adjacencia[aux_1][aux_2];
+        int b = lower_bound(matriz_adjacencia[a].begin(), matriz_adjacencia[a].end(), aux_1, [&](int l, int r) { 
           return compararVertices(vertices[l], vertices[r], vertices[a]); 
         }) - matriz_adjacencia[a].begin() + 1;
 
@@ -85,7 +88,7 @@ vector<vector<size_t>> encontrarFaces(vector<Ponto> vertices, vector<vector<size
         aux_1 = a;
         aux_2 = b;
       }
-      std::reverse(face.begin(), face.end());
+      reverse(face.begin(), face.end());
 
       face.push_back(face[0]);
       faces.emplace_back(face);
@@ -102,7 +105,7 @@ Grafo lerEntrada() {
   cin >> N >> M;
 
   vector<Ponto> vertices(N);
-  vector<vector<size_t>> matriz_adjacencia(N);
+  vector<vector<int>> matriz_adjacencia(N);
 
   for (int i = 0; i < N; i++) {
     double x, y;
@@ -126,12 +129,12 @@ Grafo lerEntrada() {
 
 
 
-void imprimirSaida(const vector<vector<size_t>>& faces) {
+void imprimirSaida(const vector<vector<int>>& faces) {
   cout << faces.size() << endl;
 
-  for (size_t i = 0; i < faces.size(); i++) {
+  for (int i = 0; i < faces.size(); i++) {
     cout << faces[i].size() << " ";
-    for (size_t j = 0; j < faces[i].size(); j++) {
+    for (int j = 0; j < faces[i].size(); j++) {
       cout << faces[i][j] + 1 << " ";
     }
     cout << endl;
@@ -141,9 +144,9 @@ void imprimirSaida(const vector<vector<size_t>>& faces) {
 
 
 int main() {
-  Grafo g = lerEntrada();
+  Grafo grafo = lerEntrada();
 
-  vector<vector<size_t>> faces = encontrarFaces(g.vertices, g.matriz_adjacencia);
+  vector<vector<int>> faces = DFSparaEncontrarFaces(grafo.vertices, grafo.matriz_adjacencia);
 
   imprimirSaida(faces);
 
