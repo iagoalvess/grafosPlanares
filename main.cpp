@@ -1,142 +1,169 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
-#include <cassert>
 #include <cmath>
 
 using namespace std;
 
 class Ponto {
 public:
-  double x, y;
+  int grau, x, y;
 
-  Ponto() : x(0.0), y(0.0) {}
-  Ponto(double _x, double _y) : x(_x), y(_y) {}
+  Ponto() : x(0), y(0), grau(0) {}
+  Ponto(int _x, int _y) : x(_x), y(_y), grau(0) {}
+  Ponto(int _x, int _y, int _grau) : x(_x), y(_y), grau(_grau) {}
 };
 
 
 
 class Grafo {
 public:
-  vector<Ponto> vertices;
-  vector<vector<int>> matriz_adjacencia;
+  int numero_vertices, numero_arestas, numero_faces;
 
-  Grafo(vector<Ponto> _vertices, vector<vector<int>> _matriz_adjacencia) : vertices(_vertices), matriz_adjacencia(_matriz_adjacencia) {}
+  vector<Ponto> vetor_vertices;
+  vector<vector<int>> matriz_vizinhos;
+
+  Grafo(int N, int M) : numero_vertices(N), numero_arestas(M) {
+    matriz_vizinhos.resize(N);
+    calcularNumeroFaces();
+  }
+
+  void calcularNumeroFaces() {
+    numero_faces = numero_arestas - numero_vertices + 2;
+  }
 };
 
 
 
-// Calcula a inclinação relativa entre dois pontos p e q
-double inclinacaoRelativa(const Ponto& p, const Ponto& q) {
-  return atan2(q.y - p.y, q.x - p.x);
+Ponto calcular_diferenca(const Ponto &a, const Ponto &b) {
+  return Ponto(a.x - b.x, a.y - b.y);
 }
 
 
 
-// Compara dois vértices (ponto1 e ponto2) em relação a um ponto de referência
-bool compararVertices(const Ponto& ponto1, const Ponto& ponto2, const Ponto& referencia) {
-  double angulo1 = inclinacaoRelativa(ponto1, referencia);
-  double angulo2 = inclinacaoRelativa(ponto2, referencia);
-
-  if (angulo1 != angulo2) {
-    return angulo1 < angulo2;
-  }
-
-  double dist1 = (ponto1.x - referencia.x) * (ponto1.x - referencia.x) + (ponto1.y - referencia.y) * (ponto1.y - referencia.y);
-  double dist2 = (ponto2.x - referencia.x) * (ponto2.x - referencia.x) + (ponto2.y - referencia.y) * (ponto2.y - referencia.y);
-
-  return dist1 < dist2;
+int calcular_produto(const Ponto &difA, const Ponto &difB) {
+  return difA.x * difB.y - difA.y * difB.x;
 }
 
 
 
-// Função que encontra as faces do grafo usando busca em profundidade
-vector<vector<int>> DFSparaEncontrarFaces(vector<Ponto> vertices, vector<vector<int>> matriz_adjacencia) {
-  vector<vector<bool>> arestas_visitadas(vertices.size());
+bool comparar_angulo(const Ponto &pontoA, const Ponto &pontoB, const Ponto &referencia) {
+  Ponto difA = calcular_diferenca(pontoA, referencia);
+  Ponto difB = calcular_diferenca(pontoB, referencia);
 
-  for (int i = 0; i < vertices.size(); i++) {
-    arestas_visitadas[i].resize(matriz_adjacencia[i].size(), false);
-    sort(matriz_adjacencia[i].begin(), matriz_adjacencia[i].end(), [&](int l, int r) { 
-      return compararVertices(vertices[l], vertices[r], vertices[i]); 
-    });
+  if (difA.y < 0 || (difA.y == 0 && difA.x < 0)) {
+    if (!(difB.y < 0 || (difB.y == 0 && difB.x < 0))) {
+      return true;
+    }
+  } 
+  else if (difB.y < 0 || (difB.y == 0 && difB.x < 0)) {
+    return false;
   }
 
-  vector<vector<int>> faces;
-  for (int i = 0; i < vertices.size(); i++) {
-    for (int j = 0; j < matriz_adjacencia[i].size(); j++) {
-      if (arestas_visitadas[i][j] == true) {
+  int produtoVetorial = calcular_produto(difA, difB);
+  return produtoVetorial > 0;
+}
+
+
+
+int determinarSinalProdutoVetorial(const Ponto &pontoA, const Ponto &pontoB, const Ponto &pontoC) {
+  Ponto difA = calcular_diferenca(pontoA, pontoC);
+  Ponto difB = calcular_diferenca(pontoB, pontoC);
+
+  int produtoVetorial = calcular_produto(difA, difB);
+
+  if (produtoVetorial > 0) {
+    return 1;
+  } 
+  else if (produtoVetorial < 0) {
+    return -1;
+  }
+
+  return 0;
+}
+
+
+
+vector<vector<bool>> inicializarMatrizVisitados(int n, const vector<vector<int>> &matriz_vizinhos, const vector<Ponto> &vetor_vertices) {
+  vector<vector<bool>> matriz_visitados(n);
+
+  for (int i = 0; i < n; i++) {
+    matriz_visitados[i].resize(matriz_vizinhos[i].size());
+    matriz_visitados[i].assign(matriz_vizinhos[i].size(), false);
+  }
+
+  return matriz_visitados;
+}
+
+
+
+vector<vector<int>> descobrirFacesGrafoPlanar(Grafo& grafo) {
+  int numero_vertices = grafo.numero_vertices;
+  vector<vector<bool>> matriz_visitados = inicializarMatrizVisitados(numero_vertices, grafo.matriz_vizinhos, grafo.vetor_vertices);
+
+  for (int i = 0; i < numero_vertices; i++) {
+    auto compare = [&](int l, int r) {
+      return comparar_angulo(grafo.vetor_vertices[l], grafo.vetor_vertices[r], grafo.vetor_vertices[i]);
+    };
+
+    sort(grafo.matriz_vizinhos[i].begin(), grafo.matriz_vizinhos[i].end(), compare);
+  }
+
+  vector<vector<int>> matriz_faces;
+
+  for (int indice_vertice = 0; indice_vertice < numero_vertices; indice_vertice++) {
+    for (int indice_aresta = 0; indice_aresta < grafo.matriz_vizinhos[indice_vertice].size(); indice_aresta++) {
+      if (matriz_visitados[indice_vertice][indice_aresta] == true) {
         continue;
       }
 
       vector<int> face;
-      int aux_1 = i;
-      int aux_2 = j;
 
-      while (arestas_visitadas[aux_1][aux_2] == false) {
-        arestas_visitadas[aux_1][aux_2] = true;
-        face.push_back(aux_1);
+      int vertice_atual = indice_vertice;
+      int aresta_atual = indice_aresta;
 
-        int a = matriz_adjacencia[aux_1][aux_2];
-        int b = lower_bound(matriz_adjacencia[a].begin(), matriz_adjacencia[a].end(), aux_1, [&](int l, int r) { 
-          return compararVertices(vertices[l], vertices[r], vertices[a]); 
-        }) - matriz_adjacencia[a].begin() + 1;
+      while (matriz_visitados[vertice_atual][aresta_atual] == false) {
+        matriz_visitados[vertice_atual][aresta_atual] = true;
+        face.push_back(vertice_atual);
+        int vertice_vizinho = grafo.matriz_vizinhos[vertice_atual][aresta_atual];
 
-        if (b >= matriz_adjacencia[a].size()) {
-          b = 0;
+        int proxima_aresta = -1;
+
+        for (int i = 0; i < grafo.matriz_vizinhos[vertice_vizinho].size(); i++) {
+          if (grafo.matriz_vizinhos[vertice_vizinho][i] == vertice_atual) {
+            proxima_aresta = (i + 1) % grafo.matriz_vizinhos[vertice_vizinho].size();
+            break;
+          }
         }
 
-        aux_1 = a;
-        aux_2 = b;
+        if (proxima_aresta == -1) {
+          proxima_aresta = 0;
+        }
+
+        vertice_atual = vertice_vizinho;
+        aresta_atual = proxima_aresta;
       }
+
       reverse(face.begin(), face.end());
 
-      face.push_back(face[0]);
-      faces.emplace_back(face);
+      matriz_faces.emplace_back(face);
     }
   }
-
-  return faces;
+  return matriz_faces;
 }
 
 
 
-Grafo lerEntrada() {
-  int N, M;
-  cin >> N >> M;
-
-  vector<Ponto> vertices(N);
-  vector<vector<int>> matriz_adjacencia(N);
-
-  for (int i = 0; i < N; i++) {
-    double x, y;
-    int d;
-    cin >> x >> y >> d;
-
-    assert(d > 0 && d <= N);
-
-    vertices[i] = Ponto(x, y);
-    for (int j = 0; j < d; j++) {
-      int v;
-      cin >> v;
-      v--;
-      assert(v >= 0 && v < N && v != i);
-      matriz_adjacencia[i].push_back(v);
-    }
-  }
-
-  return Grafo(vertices, matriz_adjacencia);
-}
-
-
-
-void imprimirSaida(const vector<vector<int>>& faces) {
+void imprimir_saida(const vector<vector<int>>& faces) {
   cout << faces.size() << endl;
 
   for (int i = 0; i < faces.size(); i++) {
-    cout << faces[i].size() << " ";
+    cout << faces[i].size() + 1 << " ";
+
     for (int j = 0; j < faces[i].size(); j++) {
       cout << faces[i][j] + 1 << " ";
     }
+    cout << faces[i][0] + 1;
     cout << endl;
   }
 }
@@ -144,11 +171,32 @@ void imprimirSaida(const vector<vector<int>>& faces) {
 
 
 int main() {
-  Grafo grafo = lerEntrada();
+  int N, M;
+  cin >> N >> M;
 
-  vector<vector<int>> faces = DFSparaEncontrarFaces(grafo.vertices, grafo.matriz_adjacencia);
+  Grafo grafo(N, M);
 
-  imprimirSaida(faces);
+  for (int i = 0; i < N; i++) {
+    float x, y;
+    int grau;
+
+    cin >> x >> y >> grau;
+    
+    Ponto aux(x, y, grau);
+
+    grafo.vetor_vertices.push_back(aux);
+
+    for (int j = 0; j < grau; j++) {
+      int vizinho;
+      cin >> vizinho;
+      vizinho--;
+      
+      grafo.matriz_vizinhos[i].push_back(vizinho);
+    }
+  }
+
+  vector<vector<int>> faces = descobrirFacesGrafoPlanar(grafo);
+  imprimir_saida(faces);
 
   return 0;
 }
